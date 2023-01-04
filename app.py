@@ -6,6 +6,7 @@ import subprocess
 import shutil
 import numpy
 import platform
+import pandas as pd
 
 print()
 
@@ -56,4 +57,5 @@ import talib
 st.title("FX Infomation")
 close = numpy.random.random(100)
 output = talib.SMA(close)
-print(output)
+df = pd.DataFrame(output)
+st.dataframe(df)
