@@ -4,6 +4,7 @@ import os
 import sys
 import subprocess
 import shutil
+import numpy
 
 
 # shutil.rmtree("/tmp/ta-lib")
@@ -50,4 +51,6 @@ finally:
 import streamlit as st
 
 st.title("FX Infomation")
-
+close = numpy.random.random(100)
+output = talib.SMA(close)
+print(output)
