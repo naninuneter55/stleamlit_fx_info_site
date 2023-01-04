@@ -3,9 +3,10 @@ import requests
 import os
 import sys
 import subprocess
+import shutil
 
 
-
+shutil.rmtree("/tmp/ta-lib")
 # check if the library folder already exists, to avoid building everytime you load the pahe
 if not os.path.isdir("/tmp/ta-lib"):
 
