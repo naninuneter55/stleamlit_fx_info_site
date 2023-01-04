@@ -7,8 +7,9 @@ import shutil
 import numpy
 import platform
 import pandas as pd
-
-print()
+import gspread
+# from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2 import service_account
 
 if platform.system() == "Linux":
     # shutil.rmtree("/tmp/ta-lib")
@@ -54,8 +55,22 @@ if platform.system() == "Linux":
 
 import talib
 
+scope =['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
+# creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
+creds = service_account.Credentials.from_service_account_info( st.secrets["gcp_service_account"], scopes=scope)
+
+gc = gspread.authorize(creds)
+SP_SHEET_KEY = st.secrets.SP_SHEET_KEY.key # スプレッドシートのキー
+sh = gc.open_by_key(SP_SHEET_KEY)
+SP_SHEET = 'シート1' # シート名「シート1」を指定
+worksheet = sh.worksheet(SP_SHEET)
+data = worksheet.get_all_values() 
+print(len(data))
+
 st.title("FX Infomation")
-close = numpy.random.random(100)
-output = talib.SMA(close)
-df = pd.DataFrame(output)
+# close = numpy.random.random(100)
+# output = talib.SMA(close)
+df = pd.DataFrame(data)
 st.dataframe(df)
+
+
