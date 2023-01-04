@@ -1,2 +1,1 @@
 streamlit==1.16.0
-numpy==y-1.24.1
