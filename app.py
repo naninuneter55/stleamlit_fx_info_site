@@ -1,4 +1,5 @@
 import streamlit as st
+import matplotlib.pyplot as plt
 import requests
 import os
 import sys
@@ -11,6 +12,7 @@ import gspread
 # from oauth2client.service_account import ServiceAccountCredentials
 from google.oauth2 import service_account
 from gspread_dataframe import get_as_dataframe
+import mplfinance as mpf
 
 if platform.system() == "Linux":
     # shutil.rmtree("/tmp/ta-lib")
@@ -66,6 +68,10 @@ sh = gc.open_by_key(SP_SHEET_KEY)
 SP_SHEET = 'シート1' # シート名「シート1」を指定
 worksheet = sh.worksheet(SP_SHEET)
 df = get_as_dataframe(worksheet)
+df["time"] = pd.to_datetime(df["time"])
+df = df.set_index("time")
+df.rename(columns={'tick_volume':'volume'}, inplace=True)
+
 close = df['close']
 macd, macdsignal, _ = ta.MACD(close, fastperiod=12, slowperiod=26, signalperiod=9)
 df['macd'] = macd
@@ -80,4 +86,22 @@ st.title("FX Infomation")
 # df = pd.DataFrame(data)
 st.dataframe(df)
 
+mdf = df.tail(100)  # 直近100日分のデータ
+import plotly.graph_objs as go
 
+# import matplotlib.pyplot as plt
+# import numpy as np
+
+# arr = np.random.normal(1, 1, size=100)
+# fig, ax = plt.subplots()
+# ax.hist(arr, bins=20)
+
+# st.pyplot(fig)
+
+
+fig = go.Figure(data = [go.Candlestick(x = mdf.index,\
+    open = mdf['open'],\
+    high = mdf['high'],\
+    low = mdf['low'],\
+    close = mdf['close'])])
+st.plotly_chart(fig, theme="streamlit", use_container_width=True)
