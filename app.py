@@ -12,7 +12,6 @@ import gspread
 # from oauth2client.service_account import ServiceAccountCredentials
 from google.oauth2 import service_account
 from gspread_dataframe import get_as_dataframe
-import mplfinance as mpf
 
 if platform.system() == "Linux":
     # shutil.rmtree("/tmp/ta-lib")
@@ -81,23 +80,9 @@ df['macd_signal'] = macdsignal
 
 
 st.title("FX Infomation")
-# close = numpy.random.random(100)
-# output = talib.SMA(close)
-# df = pd.DataFrame(data)
 st.dataframe(df)
 
 mdf = df.tail(100)  # 直近100日分のデータ
-
-
-# import matplotlib.pyplot as plt
-# import numpy as np
-
-# arr = np.random.normal(1, 1, size=100)
-# fig, ax = plt.subplots()
-# ax.hist(arr, bins=20)
-
-# st.pyplot(fig)
-
 
 fig = go.Figure(data = [go.Candlestick(x = mdf.index,\
     open = mdf['open'],\
