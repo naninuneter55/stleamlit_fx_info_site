@@ -54,7 +54,7 @@ if platform.system() == "Linux":
     # finally:
     #     import talib
 
-import talib
+import talib as ta
 
 scope =['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
 # creds = ServiceAccountCredentials.from_json_keyfile_name('client_secret.json', scope)
@@ -66,6 +66,10 @@ sh = gc.open_by_key(SP_SHEET_KEY)
 SP_SHEET = 'シート1' # シート名「シート1」を指定
 worksheet = sh.worksheet(SP_SHEET)
 df = get_as_dataframe(worksheet)
+close = df['close']
+macd, macdsignal, _ = ta.MACD(close, fastperiod=12, slowperiod=26, signalperiod=9)
+df['macd'] = macd
+df['macd_signal'] = macdsignal
 # data = worksheet.get_all_values() 
 # print(len(data))
 
