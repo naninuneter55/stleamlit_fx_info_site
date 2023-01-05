@@ -10,6 +10,7 @@ import pandas as pd
 import gspread
 # from oauth2client.service_account import ServiceAccountCredentials
 from google.oauth2 import service_account
+from gspread_dataframe import get_as_dataframe
 
 if platform.system() == "Linux":
     # shutil.rmtree("/tmp/ta-lib")
@@ -64,13 +65,15 @@ SP_SHEET_KEY = st.secrets.SP_SHEET_KEY.key # スプレッドシートのキー
 sh = gc.open_by_key(SP_SHEET_KEY)
 SP_SHEET = 'シート1' # シート名「シート1」を指定
 worksheet = sh.worksheet(SP_SHEET)
-data = worksheet.get_all_values() 
-print(len(data))
+df = get_as_dataframe(worksheet)
+# data = worksheet.get_all_values() 
+# print(len(data))
+
 
 st.title("FX Infomation")
 # close = numpy.random.random(100)
 # output = talib.SMA(close)
-df = pd.DataFrame(data)
+# df = pd.DataFrame(data)
 st.dataframe(df)
 
 
