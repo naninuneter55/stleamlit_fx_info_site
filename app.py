@@ -1,5 +1,5 @@
 import streamlit as st
-import matplotlib.pyplot as plt
+import plotly.graph_objs as go
 import requests
 import os
 import sys
@@ -87,7 +87,7 @@ st.title("FX Infomation")
 st.dataframe(df)
 
 mdf = df.tail(100)  # 直近100日分のデータ
-import plotly.graph_objs as go
+
 
 # import matplotlib.pyplot as plt
 # import numpy as np
