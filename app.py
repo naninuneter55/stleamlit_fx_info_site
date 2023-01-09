@@ -97,4 +97,4 @@ ax1.plot(PlotBf[0], PlotBf[1],
           markeredgecolor="green")
 
 st.pyplot(fig)
-st.dataframe(df)
+st.dataframe(df, width=1000)
