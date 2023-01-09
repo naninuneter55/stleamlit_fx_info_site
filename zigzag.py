@@ -1,3 +1,5 @@
+import sys                  # Floatの最大値/最小値
+
 # ********************************************
 # (For Python3.8)
 # ＜Tech計算＞
@@ -6,9 +8,9 @@
 # [更新履歴]
 #   2022/05/25 V1.00 新規作成 [C# から Python へ移植]
 # ********************************************
-def ZigZag(Sdt:list,  Width:int=12) -> list:
+def zigzag(std,  width=12):
     ''' ≪ＺｉｇＺａｇ≫
-          【仮引数】Sdt   : 入力データ列 (リスト型)
+          【仮引数】std   : 入力データ列 (リスト型)
                     NN    : 検出区間長 (山-山 or 谷-谷 の間隔)
           【戻り値】座標(x,y,Sg)のデータ列  (リスト型)
                     [Sg=True(山),False(谷)]
@@ -30,8 +32,8 @@ def ZigZag(Sdt:list,  Width:int=12) -> list:
     # --- ZigZagの計算 ---
 
     rlt = []                                    # リスト型の初期化
-    HiCnt = [0] * len(Sdt)                      # (Max/Min)検知カウンター
-    LwCnt = [0] * len(Sdt)                      # [len(Sdt)個の領域を確保]
+    hi_cnt = [0] * len(std)                      # (Max/Min)検知カウンター
+    lw_cnt = [0] * len(std)                      # [len(std)個の領域を確保]
     # --------------------------------------------------------------
     # ＜Memo＞  リスト型 などでは、リングバッファ的な使い方ができる
     #           例えば、最後の要素を取得するなら rlt[-1] のIndex指定
@@ -40,56 +42,58 @@ def ZigZag(Sdt:list,  Width:int=12) -> list:
 
     # --- まず、頂点(Max/Min)の検知カウント処理 ---
 
-    for kk in range(len(Sdt)):                  # 範囲 kk=[0, len(Sdt)-1]
+    for kk in range(len(std)):                  # 範囲 kk=[0, len(std)-1]
 
-        EPos = kk + Width                       # [EPos=kk+Width] 窓区間(Width) で頂点を検索する
-        if(EPos > len(Sdt)):                    # [EPos>len(Sdt)] 残データのフラッシュ的にて検索する場合
-            EPos = len(Sdt)                     #                 (最後尾なので区間幅が縮小される)
+        EPos = kk + width                       # [EPos=kk+width] 窓区間(width) で頂点を検索する
+        if(EPos > len(std)):                    # [EPos>len(std)] 残データのフラッシュ的にて検索する場合
+            EPos = len(std)                     #                 (最後尾なので区間幅が縮小される)
 
-        nn = IndexOfHighest(Sdt, kk, EPos)      # 最大値とするPos位置を取得
-        HiCnt[nn] = HiCnt[nn] + 1               # 検知カウントUp
-        nn = IndexOfLowest(Sdt,  kk, EPos)      # 最小値とするPos位置を取得
-        LwCnt[nn] = LwCnt[nn] + 1               # 検知カウントUp
+        nn = IndexOfHighest(std, kk, EPos)      # 最大値とするPos位置を取得
+        hi_cnt[nn] = hi_cnt[nn] + 1               # 検知カウントUp
+        nn = IndexOfLowest(std,  kk, EPos)      # 最小値とするPos位置を取得
+        lw_cnt[nn] = lw_cnt[nn] + 1               # 検知カウントUp
 
+    print(hi_cnt, len(hi_cnt))
+    print(lw_cnt, len(lw_cnt))
 
     # --- 頂点情報へ変換と検知補正の処理 ---
 
-    for kk in range(len(Sdt)):                                      # 範囲 kk=[0, len(Sdt)-1]
+    for kk in range(len(std)):                                      # 範囲 kk=[0, len(std)-1]
 
-        if((HiCnt[kk] == Width) and (LwCnt[kk] == 0)):              # === "山"頂点の処理 ===
+        if((hi_cnt[kk] == width) and (lw_cnt[kk] == 0)):              # === "山"頂点の処理 ===
 
             if(len(rlt) == 0):                                      # ＜初期登録＞
-                rlt.append({"x":kk, "y":Sdt[kk], "Sg":True})        # 辞書型にパックしてリストへ追加
+                rlt.append({"x":kk, "y":std[kk], "Sg":True})        # 辞書型にパックしてリストへ追加
 
             elif(rlt[-1]["Sg"]):                                    # ＜直近が"山"の場合＞
-                if(rlt[-1]["y"] < Sdt[kk]):                         # 頂点"山"が更新しているならば
-                    rlt[-1] = {"x":kk, "y":Sdt[kk], "Sg":True}      # 情報を上書き
+                if(rlt[-1]["y"] < std[kk]):                         # 頂点"山"が更新しているならば
+                    rlt[-1] = {"x":kk, "y":std[kk], "Sg":True}      # 情報を上書き
 
             elif(not rlt[-1]["Sg"]):                                # ＜直近が"谷"の場合＞
-                if(rlt[-1]["y"] > Sdt[kk]):                         # 直近"谷"よりも小さい逆転状態ならば
+                if(rlt[-1]["y"] > std[kk]):                         # 直近"谷"よりも小さい逆転状態ならば
                     rlt.pop()                                       # 直近"谷"を取消し(削除)
                 else:                                               # そうでなければ
-                    rlt.append({"x":kk, "y":Sdt[kk], "Sg":True})    # ノーマルな "谷→山" として登録
+                    rlt.append({"x":kk, "y":std[kk], "Sg":True})    # ノーマルな "谷→山" として登録
             # -------------------------------------------------------------------
             # ＜Memo＞ popメソッドで引数の指定をしなければ 最後の要素が削除される。
             #          削除できる要素は１つのみ。 del文を使うと複数個の要素を
             #          削除できる。 (スライス指定が可能)
             # -------------------------------------------------------------------
 
-        elif((HiCnt[kk] == 0) and (LwCnt[kk] == Width)):            # === "谷"頂点の処理 ===
+        elif((hi_cnt[kk] == 0) and (lw_cnt[kk] == width)):            # === "谷"頂点の処理 ===
 
             if(len(rlt) == 0):                                      # ＜初期登録＞
-                rlt.append({"x":kk, "y":Sdt[kk], "Sg":False})       # 辞書型にパックしてリストへ追加
+                rlt.append({"x":kk, "y":std[kk], "Sg":False})       # 辞書型にパックしてリストへ追加
 
             elif(not rlt[-1]["Sg"]):                                # ＜直近が"谷"の場合＞
-                if(rlt[-1]["y"] > Sdt[kk]):                         # 頂点"谷"が更新しているならば
-                    rlt[-1] = {"x":kk, "y":Sdt[kk], "Sg":False}     # 情報を上書き
+                if(rlt[-1]["y"] > std[kk]):                         # 頂点"谷"が更新しているならば
+                    rlt[-1] = {"x":kk, "y":std[kk], "Sg":False}     # 情報を上書き
 
             elif(rlt[-1]["Sg"]):                                    # ＜直近が"山"の場合＞
-                if(rlt[-1]["y"] < Sdt[kk]):                         # 直近"山"よりも大きい逆転状態ならば
+                if(rlt[-1]["y"] < std[kk]):                         # 直近"山"よりも大きい逆転状態ならば
                     rlt.pop()                                       # 直近"山"を取消し(削除)
                 else:                                               # そうでなければ
-                    rlt.append({"x":kk, "y":Sdt[kk], "Sg":False})   # ノーマルな "山→谷" として登録
+                    rlt.append({"x":kk, "y":std[kk], "Sg":False})   # ノーマルな "山→谷" として登録
 
     return rlt      # 戻り値のセット
     # -------------------------------------------------------------------
@@ -115,7 +119,6 @@ def ZigZag(Sdt:list,  Width:int=12) -> list:
     # -------------------------------------------------------------------
 
 
-import sys                  # Floatの最大値/最小値
 
 # ********************************************
 # (For Python3.8)
@@ -125,9 +128,9 @@ import sys                  # Floatの最大値/最小値
 # [更新履歴]
 #   2022/05/25 V1.00 新規作成 [C# から Python へ移植]
 # ********************************************
-def IndexOfHighest(Sdt:list, RngStart:int, RngEnd:int) -> int:
+def IndexOfHighest(std, RngStart, RngEnd):
     ''' ≪ZigZag用の関数≫
-          【仮引数】Sdt()    ：対象データの配列  (Double型)
+          【仮引数】std()    ：対象データの配列  (Double型)
                     RngStart ：開始のIndex番号
                     RngEnd   ：終了のIndex番号＋１ ("+1"はPythonの慣例に従うもの)
           【戻り値】Return   ：最大値とするIndex番号
@@ -147,8 +150,8 @@ def IndexOfHighest(Sdt:list, RngStart:int, RngEnd:int) -> int:
     # --- 最大値とするIndexを検索 ---
     for kk in range(RngStart, RngEnd):      #  範囲 kk=[Start, End-1]
 
-        if(Sdt[kk] > MaxV):
-            MaxV = Sdt[kk]
+        if(std[kk] > MaxV):
+            MaxV = std[kk]
             Pos  = kk
 
     return Pos
@@ -161,9 +164,9 @@ def IndexOfHighest(Sdt:list, RngStart:int, RngEnd:int) -> int:
 # [更新履歴]
 #   2022/05/25 V1.00 新規作成 [C# から Python へ移植]
 # ********************************************
-def IndexOfLowest(Sdt:list, RngStart:int, RngEnd:int) -> int:
+def IndexOfLowest(std:list, RngStart:int, RngEnd:int) -> int:
     ''' ≪ZigZag用の関数≫
-          【仮引数】Sdt()    ：対象データの配列
+          【仮引数】std()    ：対象データの配列
                     RngStart ：開始のIndex番号
                     RngEnd   ：終了のIndex番号＋１ ("+1"はPythonの慣例に従うもの)
           【戻り値】Return   ：最小値とするIndex番号
@@ -180,8 +183,8 @@ def IndexOfLowest(Sdt:list, RngStart:int, RngEnd:int) -> int:
     # --- 最小値とするIndexを検索 ---
     for kk in range(RngStart, RngEnd):      #  範囲 kk=[Start, End-1]
 
-        if(Sdt[kk] < MinV):
-            MinV = Sdt[kk]
+        if(std[kk] < MinV):
+            MinV = std[kk]
             Pos  = kk
 
     return Pos
@@ -194,17 +197,17 @@ def IndexOfLowest(Sdt:list, RngStart:int, RngEnd:int) -> int:
 # [更新履歴]
 #   2022/05/26 V1.00 新規作成
 # ********************************************
-def toPlotDataForZigZag(Sdt:list) -> list:
+def toPlotDataForZigZag(std:list) -> list:
     ''' ≪ZigZag用のデータ変換≫
-          【仮引数】Sdt  : 座標(x,y)形式のデータ列
+          【仮引数】std  : 座標(x,y)形式のデータ列
           【戻り値】MpfFinanceでのプロット用データ列
                     (Xdata列, Ydata列)
     '''
-    Xdt:float = [0.0] * len(Sdt)
-    Ydt:float = [0.0] * len(Sdt)
+    Xdt:float = [0.0] * len(std)
+    Ydt:float = [0.0] * len(std)
 
-    for kk in range(len(Sdt)):
-        Xdt[kk] = float(Sdt[kk]["x"])
-        Ydt[kk] = Sdt[kk]["y"]
+    for kk in range(len(std)):
+        Xdt[kk] = float(std[kk]["x"])
+        Ydt[kk] = std[kk]["y"]
 
     return (Xdt, Ydt)
