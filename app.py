@@ -1,106 +1,97 @@
 from datetime import date
 import streamlit as st
-import pandas as pd
-import numpy as np
-import gspread
-from google.oauth2 import service_account
-from gspread_dataframe import get_as_dataframe
 import mplfinance as mpf
+import myfxlib as fx
 
-st.set_page_config(
-     page_title="FX Infomation",
-     page_icon="🧊",
-    #  layout="wide",
-     layout="centered",
-     initial_sidebar_state="expanded",
-     menu_items={
-         'Get Help': 'https://www.extremelycoolapp.com/help',
-         'Report a bug': "https://www.extremelycoolapp.com/bug",
-         'About': "# This is a header. This is an *extremely* cool app!",
-     }
- )
+def prologe():
+    st.set_page_config(
+        page_title="FX Infomation",
+        page_icon="🧊",
+         layout="wide",
+        # layout="centered",
+        initial_sidebar_state="expanded",
+        menu_items={
+            'Get Help': 'https://www.extremelycoolapp.com/help',
+            'Report a bug': "https://www.extremelycoolapp.com/bug",
+            'About': "# This is a header. This is an *extremely* cool app!",
+        }
+    )
 
-scope =['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
-creds = service_account.Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=scope)
-SP_SHEET_KEY = st.secrets.SP_SHEET_KEY.key # スプレッドシートのキー
-gc = gspread.authorize(creds)
-sh = gc.open_by_key(SP_SHEET_KEY)
-
-
-def get_historical_data(from_dt, to_dt):
-    SP_SHEET = 'シート1' # シート名「シート1」を指定
-    worksheet = sh.worksheet(SP_SHEET)
-    df = get_as_dataframe(worksheet, header=0, index_col=0)
-    df = df.rename(columns = {'Open': 'open', 'High': 'high', 'Low': 'low', 'Close': 'close', 'Volume': 'volume'})
-    for i in df.columns:
-        df[i] = df[i].astype(float)
-    df.index = pd.to_datetime(df.index)
-    df = df.loc[from_dt:to_dt]
+def get_historical_data():
+    sp_sheet_key = st.secrets.sp_sheet_key.key # スプレッドシートのキー
+    account = st.secrets["gcp_service_account"]
+    from_dt = date(2022, 1, 1)
+    to_dt = date(2022, 6, 30)
+    df = fx.get_historical_data(sp_sheet_key, account, from_dt, to_dt)
     return df
 
-SWING_HIGH_LOW_WINDOW = 5 + 1 + 5
-def swing_high(prices):
-    l = len(prices)
-    c = l // 2
-    result = prices[c]
-    for i in range(len(prices)):
-        if i != c and prices[i] >= prices[c]:
-            result = np.nan
-            break
-    return result
+def get_fig(df):
+    fig = mpf.figure(figsize=[20, 8], style='yahoo')
+    ax1 = fig.add_subplot(1,1,1)
+    alines = fx.get_zigzag_alines(df)
+    series = [
+        mpf.make_addplot(
+            fx.get_swing_highs(df),
+            type='scatter',
+            markersize=50,
+            marker='v',
+            color='black',
+            ax=ax1
+        ),
+        mpf.make_addplot(
+            fx.get_swing_lows(df),
+            type='scatter',
+            markersize=50,
+            marker='^',
+            color='black',
+            ax=ax1
+        ),
+    ]
+    mpf.plot(df,
+            type="candle",
+            ax = ax1,
+            volume=False,
+            datetime_format="%m/%d %H:%M",
+            xrotation=15,
+            axtitle="== Sample Candle Chart ==",
+            ylabel="[Cdle Value]",
+            addplot=series,
+            alines=alines
+    )
+    return fig
 
-def swing_low(prices):
-    l = len(prices)
-    c = l // 2
-    result = prices[c]
-    for i in range(len(prices)):
-        if i != c and prices[i] <= prices[c]:
-            result = np.nan
-            break
-    return result
+def create_sidebar():
+    st.sidebar.markdown("## Controls")
+    st.sidebar.markdown("You can **change** the values to change the *chart*.")
+    x = st.sidebar.slider('Slope', min_value=0.01, max_value=0.10, step=0.01)
+    y = st.sidebar.slider('Noise', min_value=0.01, max_value=0.10, step=0.01)
+    import time
 
 
-from_dt = date(2022, 1, 1)
-to_dt = date(2022, 6, 30)
-df = get_historical_data(from_dt, to_dt)
-df["swing_high"] = df["high"].rolling(window=SWING_HIGH_LOW_WINDOW, center=True).apply(swing_high)
-df["swing_low"] = df["low"].rolling(window=SWING_HIGH_LOW_WINDOW, center=True).apply(swing_low)
+def main():
 
-st.title("FX Infomation")
+    prologe()
+    create_sidebar()
 
-fig = mpf.figure(figsize=[10, 8], style='yahoo')
-ax1 = fig.add_subplot(1,1,1)
+    st.title("FX Infomation")
 
-series = [
-    mpf.make_addplot(
-        df["swing_high"],
-        type='scatter',
-        markersize=30,
-        marker='v',
-        color='black',
-        ax=ax1
-    ),
-    mpf.make_addplot(
-        df["swing_low"],
-        type='scatter',
-        markersize=30,
-        marker='^',
-        color='black',
-        ax=ax1
-    ),
-]
+    col1, col2, col3 = st.columns([1.5, 3, 1.5])
 
-mpf.plot(df,
-         type="candle",
-         ax = ax1,
-         volume=False,
-         datetime_format="%m/%d %H:%M",
-         xrotation=15,
-         axtitle="== Sample Candle Chart ==",
-         ylabel="[Cdle Value]",
-         addplot=series,
-         alines=[('2022/05/24', 126.356), ('2022/06/16',131.486)]
-)
+    with col1:
+        st.header("A cat")
 
-st.pyplot(fig)
-st.dataframe(df, width=1000)
+    with col2:
+        st.header("A dog")
+        with st.spinner("Loading historical data ..."):
+            df = get_historical_data()
+        fig = get_fig(df)
+        st.pyplot(fig)
+        st.dataframe(df, width=1000)
+
+    with col3:
+        st.header("An owl")
+
+
+
+if __name__ == "__main__":
+    main()
