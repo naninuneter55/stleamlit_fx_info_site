@@ -6,7 +6,7 @@ from gspread_dataframe import get_as_dataframe
 
 SWING_HIGH_LOW_WINDOW = 5 + 1 + 5
 
-def get_historical_data(ss_sheet_name, gcp_service_account, from_dt, to_dt):
+def get_historical_data(ss_sheet_name, gcp_service_account, from_dt, to_dt, year):
 
     scope =['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
     creds = service_account.Credentials.from_service_account_info(gcp_service_account, scopes=scope)
@@ -15,15 +15,17 @@ def get_historical_data(ss_sheet_name, gcp_service_account, from_dt, to_dt):
     SP_SHEET = "USDJPY_M5"
     worksheet = sh.worksheet(SP_SHEET)
     df = get_as_dataframe(worksheet, header=0, index_col=0)
+    df = df.dropna(how='all')
     df = df.rename(columns = {'Open': 'open', 'High': 'high', 'Low': 'low', 'Close': 'close', 'TickVolume': 'volume', 'Spread': 'spread', 'RealVolume': 'rv', })
     for i in df.columns:
         df[i] = df[i].astype(float)
-    print(df.dtypes)
-    print(df.index.dtype)
     df.index = pd.to_datetime(df.index)
-    print(df.index.dtype)
-    df = df.loc[from_dt:to_dt]
+    # df = df.loc[loc_date(from_dt):loc_date(to_dt)]
+    df = df.tail(200)
     return df
+
+def loc_date(dt):
+    return dt.strftime("%Y-%m-%d")
 
 def swing_high(prices):
     l = len(prices)

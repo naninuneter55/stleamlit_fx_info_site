@@ -1,4 +1,4 @@
-from datetime import date
+import datetime
 import streamlit as st
 import mplfinance as mpf
 import myfxlib as fx
@@ -20,13 +20,14 @@ def prologe():
 def get_historical_data():
     ss_sheet_name = "2023"
     account = st.secrets["gcp_service_account"]
-    from_dt = date(2023, 1, 4)
-    to_dt = date(2023, 1, 5)
-    df = fx.get_historical_data(ss_sheet_name, account, from_dt, to_dt)
+    from_dt = datetime.date(2023, 1, 1)
+    to_dt = datetime.date(2023, 12, 31)
+    year = datetime.date.today().year
+    df = fx.get_historical_data(ss_sheet_name, account, from_dt, to_dt, year)
     return df
 
 def get_fig(df):
-    fig = mpf.figure(figsize=[20, 8], style='yahoo', dpi=400)
+    fig = mpf.figure(figsize=[20, 10], style='yahoo', dpi=400)
     ax1 = fig.add_subplot(1,1,1)
     alines = fx.get_zigzag_alines(df)
     series = [
