@@ -18,15 +18,15 @@ def prologe():
     )
 
 def get_historical_data():
-    sp_sheet_key = st.secrets.sp_sheet_key.key # スプレッドシートのキー
+    ss_sheet_name = "2023"
     account = st.secrets["gcp_service_account"]
-    from_dt = date(2022, 1, 1)
-    to_dt = date(2022, 6, 30)
-    df = fx.get_historical_data(sp_sheet_key, account, from_dt, to_dt)
+    from_dt = date(2023, 1, 4)
+    to_dt = date(2023, 1, 5)
+    df = fx.get_historical_data(ss_sheet_name, account, from_dt, to_dt)
     return df
 
 def get_fig(df):
-    fig = mpf.figure(figsize=[20, 8], style='yahoo')
+    fig = mpf.figure(figsize=[20, 8], style='yahoo', dpi=400)
     ax1 = fig.add_subplot(1,1,1)
     alines = fx.get_zigzag_alines(df)
     series = [
@@ -75,22 +75,10 @@ def main():
 
     st.title("FX Infomation")
 
-    col1, col2, col3 = st.columns([1.5, 3, 1.5])
-
-    with col1:
-        st.header("A cat")
-
-    with col2:
-        st.header("A dog")
-        with st.spinner("Loading historical data ..."):
-            df = get_historical_data()
-        fig = get_fig(df)
-        st.pyplot(fig)
-        st.dataframe(df, width=1000)
-
-    with col3:
-        st.header("An owl")
-
+    df = get_historical_data()
+    fig = get_fig(df)
+    st.pyplot(fig)
+    st.dataframe(df, width=1000)
 
 
 if __name__ == "__main__":

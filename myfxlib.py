@@ -6,19 +6,22 @@ from gspread_dataframe import get_as_dataframe
 
 SWING_HIGH_LOW_WINDOW = 5 + 1 + 5
 
-def get_historical_data(sp_sheet_key, gcp_service_account, from_dt, to_dt):
+def get_historical_data(ss_sheet_name, gcp_service_account, from_dt, to_dt):
 
     scope =['https://spreadsheets.google.com/feeds', 'https://www.googleapis.com/auth/drive']
     creds = service_account.Credentials.from_service_account_info(gcp_service_account, scopes=scope)
     gc = gspread.authorize(creds)
-    sh = gc.open_by_key(sp_sheet_key)
-    SP_SHEET = 'シート1' # シート名「シート1」を指定
+    sh = gc.open(ss_sheet_name)
+    SP_SHEET = "USDJPY_M5"
     worksheet = sh.worksheet(SP_SHEET)
     df = get_as_dataframe(worksheet, header=0, index_col=0)
-    df = df.rename(columns = {'Open': 'open', 'High': 'high', 'Low': 'low', 'Close': 'close', 'Volume': 'volume', 'Spread': 'spread', 'RealVolume': 'rv', })
+    df = df.rename(columns = {'Open': 'open', 'High': 'high', 'Low': 'low', 'Close': 'close', 'TickVolume': 'volume', 'Spread': 'spread', 'RealVolume': 'rv', })
     for i in df.columns:
         df[i] = df[i].astype(float)
+    print(df.dtypes)
+    print(df.index.dtype)
     df.index = pd.to_datetime(df.index)
+    print(df.index.dtype)
     df = df.loc[from_dt:to_dt]
     return df
 
